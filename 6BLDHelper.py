@@ -58,6 +58,15 @@ def get_clockwise_obliques(sides):
 def get_counterclockwise_obliques(sides):
     return get_pieces(sides, [8, 16, 27, 19])
 
+def get_outer_wings(sides):
+    return get_pieces(sides, [4, 29, 31, 6])
+
+def get_inner_wings(sides):
+    return get_pieces(sides, [3, 23, 32, 12])
+
+def get_corners(sides):
+    return get_pieces(sides, [0, 5, 35, 30])
+
 # gets the index of the buffer
 def letter_to_number(letter):
     return ord(letter.lower()) - ord('a')
@@ -86,6 +95,9 @@ if len(args) == 0:
     print(get_inner_x_centers(cube_sides))
     print(get_clockwise_obliques(cube_sides))
     print(get_counterclockwise_obliques(cube_sides))
+    print(get_outer_wings(cube_sides))
+    print(get_inner_wings(cube_sides))
+    print(get_corners(cube_sides))
 
     buffer = letter_to_number("a")
 
