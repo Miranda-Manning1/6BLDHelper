@@ -38,8 +38,31 @@ def parse_cube(cube_str):
 
     return cube
 
-args = sys.argv[1:]
+def get_pieces(sides, piece_locations):
+    pieces = ""
+    for side in sides:
+        for piece in piece_locations:
+            pieces += side[piece]
 
+    return pieces
+
+def get_outer_x_centers(sides):
+    return get_pieces(sides, [7, 10, 28, 25])
+
+def get_inner_x_centers(sides):
+    return get_pieces(sides, [14, 15, 21, 20])
+
+def get_clockwise_obliques(sides):
+    return get_pieces(sides, [9, 22, 26, 13])
+
+def get_counterclockwise_obliques(sides):
+    return get_pieces(sides, [8, 16, 27, 19])
+
+# gets the index of the buffer
+def letter_to_number(letter):
+    return ord(letter.lower()) - ord('a')
+
+args = sys.argv[1:]
 
 if len(args) == 0:
     scramble = scrambler666.get_WCA_scramble()
@@ -59,7 +82,12 @@ if len(args) == 0:
     # Reshape into 6 lists of 36
     cube_sides = [parsed_cube[i:i + 36] for i in range(0, 216, 36)]
 
-    print(cube_sides)
+    print(get_outer_x_centers(cube_sides))
+    print(get_inner_x_centers(cube_sides))
+    print(get_clockwise_obliques(cube_sides))
+    print(get_counterclockwise_obliques(cube_sides))
+
+    buffer = letter_to_number("a")
 
     quit()
 
