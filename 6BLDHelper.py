@@ -1,6 +1,7 @@
 import sys
 from cubescrambler import scrambler666
 import magiccube
+from enum import IntEnum
 
 piece_list_debugging = True
 
@@ -9,6 +10,20 @@ class Piece:
         self.color = ""
         self.side_color = ""
         self.piece_type = ""
+
+class Side(IntEnum):
+    UP = 0
+    LEFT = 1
+    FRONT = 2
+    RIGHT = 3
+    BACK = 4
+    DOWN = 5
+
+class OuterWing(IntEnum):
+    TOP_LEFT = 1
+    TOP_RIGHT = 11
+    BOTTOM_RIGHT = 34
+    BOTTOM_LEFT = 24
 
 def print_help():
     print("Welcome to the 6BLD Memo Maker!")
@@ -117,16 +132,38 @@ def get_piece_color_matrix(piece_list):
     return [[piece.color for piece in piece_list[i:i+4]] for i in range(0, 24, 4)]
 
 
+
 def give_outer_wings_side_colors(wings, sides):
     side_colors = [
-        [4, 1], [3, 1], [2, 1], [1, 1], [0, 24], [2, 24], [5, 24], [4, 11],
-        [0, 34], [3, 24], [5, 1], [1, 11], [0, 11], [4, 24], [5, 11], [2, 11],
-        [0, 1], [1, 24], [5, 34], [3, 11], [2, 34], [3, 34], [4, 34], [1, 34]
+        [Side.BACK, OuterWing.TOP_LEFT],
+        [Side.RIGHT, OuterWing.TOP_LEFT],
+        [Side.FRONT, OuterWing.TOP_LEFT],
+        [Side.LEFT, OuterWing.TOP_LEFT],
+        [Side.UP, OuterWing.BOTTOM_LEFT],
+        [Side.FRONT, OuterWing.BOTTOM_LEFT],
+        [Side.DOWN, OuterWing.BOTTOM_LEFT],
+        [Side.BACK, OuterWing.TOP_RIGHT],
+        [Side.UP, OuterWing.BOTTOM_RIGHT],
+        [Side.RIGHT, OuterWing.BOTTOM_LEFT],
+        [Side.DOWN, OuterWing.TOP_LEFT],
+        [Side.LEFT, OuterWing.TOP_RIGHT],
+        [Side.UP, OuterWing.TOP_RIGHT],
+        [Side.BACK, OuterWing.BOTTOM_LEFT],
+        [Side.DOWN, OuterWing.TOP_RIGHT],
+        [Side.FRONT, OuterWing.TOP_RIGHT],
+        [Side.UP, OuterWing.TOP_LEFT],
+        [Side.LEFT, OuterWing.BOTTOM_LEFT],
+        [Side.DOWN, OuterWing.BOTTOM_RIGHT],
+        [Side.RIGHT, OuterWing.TOP_RIGHT],
+        [Side.FRONT, OuterWing.BOTTOM_RIGHT],
+        [Side.RIGHT, OuterWing.BOTTOM_RIGHT],
+        [Side.BACK, OuterWing.BOTTOM_RIGHT],
+        [Side.LEFT, OuterWing.BOTTOM_RIGHT]
     ]
 
     for i, wing in enumerate(wings):
-        side = side_colors[i][0]
-        index = side_colors[i][1]
+        side = side_colors[i][0].value
+        index = side_colors[i][1].value
         wing.side_color = sides[side][index]
 
 
@@ -171,7 +208,6 @@ def solve_pieces(piece_list, buffer):
     memo = ""
     memo_finished = False
 
-    piece_list_matrix = []
     if piece_list_debugging: piece_color_matrix = get_piece_color_matrix(piece_list)
 
     while not memo_finished:
