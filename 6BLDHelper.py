@@ -19,11 +19,12 @@ class Side(IntEnum):
     BACK = 4
     DOWN = 5
 
-class OuterWing(IntEnum):
-    TOP_LEFT = 1
-    TOP_RIGHT = 11
-    BOTTOM_RIGHT = 34
-    BOTTOM_LEFT = 24
+Wings = {
+    "TOP_LEFT": 1,
+    "TOP_RIGHT": 11,
+    "BOTTOM_RIGHT": 34,
+    "BOTTOM_LEFT": 24
+}
 
 def print_help():
     print("Welcome to the 6BLD Memo Maker!")
@@ -86,10 +87,10 @@ def get_counterclockwise_obliques(sides):
     return get_pieces(sides, [8, 16, 27, 19], "center")
 
 def get_outer_wings(sides):
-    return get_pieces(sides, [4, 29, 31, 6], "outer wing")
+    return get_pieces(sides, [4, 29, 31, 6], "wing")
 
 def get_inner_wings(sides):
-    return get_pieces(sides, [3, 23, 32, 12], "inner wing")
+    return get_pieces(sides, [3, 23, 32, 12], "wing")
 
 def get_corners(sides):
     return get_pieces(sides, [0, 5, 35, 30], "corner")
@@ -133,37 +134,37 @@ def get_piece_color_matrix(piece_list):
 
 
 
-def give_outer_wings_side_colors(wings, sides):
+def give_wings_side_colors(wings, sides):
     side_colors = [
-        [Side.BACK, OuterWing.TOP_LEFT],
-        [Side.RIGHT, OuterWing.TOP_LEFT],
-        [Side.FRONT, OuterWing.TOP_LEFT],
-        [Side.LEFT, OuterWing.TOP_LEFT],
-        [Side.UP, OuterWing.BOTTOM_LEFT],
-        [Side.FRONT, OuterWing.BOTTOM_LEFT],
-        [Side.DOWN, OuterWing.BOTTOM_LEFT],
-        [Side.BACK, OuterWing.TOP_RIGHT],
-        [Side.UP, OuterWing.BOTTOM_RIGHT],
-        [Side.RIGHT, OuterWing.BOTTOM_LEFT],
-        [Side.DOWN, OuterWing.TOP_LEFT],
-        [Side.LEFT, OuterWing.TOP_RIGHT],
-        [Side.UP, OuterWing.TOP_RIGHT],
-        [Side.BACK, OuterWing.BOTTOM_LEFT],
-        [Side.DOWN, OuterWing.TOP_RIGHT],
-        [Side.FRONT, OuterWing.TOP_RIGHT],
-        [Side.UP, OuterWing.TOP_LEFT],
-        [Side.LEFT, OuterWing.BOTTOM_LEFT],
-        [Side.DOWN, OuterWing.BOTTOM_RIGHT],
-        [Side.RIGHT, OuterWing.TOP_RIGHT],
-        [Side.FRONT, OuterWing.BOTTOM_RIGHT],
-        [Side.RIGHT, OuterWing.BOTTOM_RIGHT],
-        [Side.BACK, OuterWing.BOTTOM_RIGHT],
-        [Side.LEFT, OuterWing.BOTTOM_RIGHT]
+        [Side.BACK, Wings["TOP_LEFT"]],
+        [Side.RIGHT, Wings["TOP_LEFT"]],
+        [Side.FRONT, Wings["TOP_LEFT"]],
+        [Side.LEFT, Wings["TOP_LEFT"]],
+        [Side.UP, Wings["BOTTOM_LEFT"]],
+        [Side.FRONT, Wings["BOTTOM_LEFT"]],
+        [Side.DOWN, Wings["BOTTOM_LEFT"]],
+        [Side.BACK, Wings["TOP_RIGHT"]],
+        [Side.UP, Wings["BOTTOM_RIGHT"]],
+        [Side.RIGHT, Wings["BOTTOM_LEFT"]],
+        [Side.DOWN, Wings["TOP_LEFT"]],
+        [Side.LEFT, Wings["TOP_RIGHT"]],
+        [Side.UP, Wings["TOP_RIGHT"]],
+        [Side.BACK, Wings["BOTTOM_LEFT"]],
+        [Side.DOWN, Wings["TOP_RIGHT"]],
+        [Side.FRONT, Wings["TOP_RIGHT"]],
+        [Side.UP, Wings["TOP_LEFT"]],
+        [Side.LEFT, Wings["BOTTOM_LEFT"]],
+        [Side.DOWN, Wings["BOTTOM_RIGHT"]],
+        [Side.RIGHT, Wings["TOP_RIGHT"]],
+        [Side.FRONT, Wings["BOTTOM_RIGHT"]],
+        [Side.RIGHT, Wings["BOTTOM_RIGHT"]],
+        [Side.BACK, Wings["BOTTOM_RIGHT"]],
+        [Side.LEFT, Wings["BOTTOM_RIGHT"]]
     ]
 
     for i, wing in enumerate(wings):
         side = side_colors[i][0].value
-        index = side_colors[i][1].value
+        index = side_colors[i][1]
         wing.side_color = sides[side][index]
 
 
@@ -184,8 +185,8 @@ def get_pieces_to_attempt_swap_to(buffer, buffer_color):
         case "Y":
             return [i for i in range(20, 24) if i != buffer]
 
-def check_outer_wing(piece, piece_location, assertion):
-    if piece.piece_type != "outer wing":
+def check_wing(piece, piece_location, assertion):
+    if piece.piece_type != "wing":
         return False
 
     correct_color = ""
@@ -204,6 +205,13 @@ def check_outer_wing(piece, piece_location, assertion):
 
     return (piece.side_color == correct_color) == assertion
 
+# shifts the index values in the Wings class to bring the "other sides" for the wings 1 inward, for the next wing type
+def iterate_wings_inward(_cube_size):
+    Wings["TOP_LEFT"] = Wings["TOP_LEFT"] + 1
+    Wings["TOP_RIGHT"] = Wings["TOP_RIGHT"] + _cube_size
+    Wings["BOTTOM_RIGHT"] = Wings["BOTTOM_RIGHT"] - 1
+    Wings["BOTTOM_LEFT"] = Wings["BOTTOM_LEFT"] - _cube_size
+
 def solve_pieces(piece_list, buffer):
     memo = ""
     memo_finished = False
@@ -216,7 +224,7 @@ def solve_pieces(piece_list, buffer):
 
         # check all 4 pieces on the side for an unsolved piece
         for potential_piece_to_swap_to in pieces_to_attempt_swap_to:
-            if (not piece_list[potential_piece_to_swap_to].color == piece_list[buffer].color and piece_list[buffer].piece_type == "center") or (check_outer_wing(piece_list[buffer], potential_piece_to_swap_to, True) and piece_list[buffer].piece_type == "outer wing"):
+            if (not piece_list[potential_piece_to_swap_to].color == piece_list[buffer].color and piece_list[buffer].piece_type == "center") or (check_wing(piece_list[buffer], potential_piece_to_swap_to, True) and piece_list[buffer].piece_type == "wing"):
 
                 # swap the colors of the buffer and the swapping piece
                 piece_list[potential_piece_to_swap_to].color, piece_list[buffer].color = piece_list[buffer].color, piece_list[potential_piece_to_swap_to].color
@@ -232,7 +240,7 @@ def solve_pieces(piece_list, buffer):
                 if i == buffer:
                     continue  # don't try to swap with the buffer itself
 
-                if not color_on_correct_side(potential_piece_to_swap_to.color, i) or check_outer_wing(potential_piece_to_swap_to, i, False):
+                if not color_on_correct_side(potential_piece_to_swap_to.color, i) or check_wing(potential_piece_to_swap_to, i, False):
 
                     # swap the colors of the buffer and the swapping piece
                     piece_list[i].color, piece_list[buffer].color = piece_list[buffer].color, piece_list[i].color
@@ -252,6 +260,15 @@ def solve_pieces(piece_list, buffer):
 args = sys.argv[1:]
 
 if len(args) == 0:
+
+    cube_size = 6
+
+    # calculate the initial indexes for the other sides for the wings (starts with outer, then goes in)
+    Wings["TOP_LEFT"] = 1
+    Wings["TOP_RIGHT"] = cube_size - 1 + cube_size
+    Wings["BOTTOM_RIGHT"] = (cube_size * cube_size) - 2
+    Wings["BOTTOM_LEFT"] = (cube_size * cube_size) - (2 * cube_size)
+
     #scramble = scrambler666.get_WCA_scramble()
     scramble = "Dw' Rw Fw2 F R 3Uw' Rw2 U Rw2 L F U Uw Bw D2 3Rw' Dw' L' Rw 3Uw' L B R Dw L2 Lw2 U' F' Lw Bw Rw2 3Rw F R2 L Dw2 Lw B2 R 3Rw 3Uw2 3Rw2 L' 3Uw Lw D' F 3Rw2 L2 Dw2 3Uw R' 3Fw' Bw D' R2 Fw' Uw' 3Rw2 U' F2 Rw 3Rw' Lw R2 Uw2 B F Uw2 L' U2 D2 Lw2 F' L R2 Lw 3Fw Dw' Uw"
     print("Scramble:")
@@ -271,10 +288,12 @@ if len(args) == 0:
     clockwise_obliques = get_clockwise_obliques(cube_sides)
     counterclockwise_obliques = get_counterclockwise_obliques(cube_sides)
     outer_wings = get_outer_wings(cube_sides)
-    #inner_wings = get_inner_wings(cube_sides)
+    inner_wings = get_inner_wings(cube_sides)
     #corners = get_corners(cube_sides)
 
-    give_outer_wings_side_colors(outer_wings, cube_sides)
+    give_wings_side_colors(outer_wings, cube_sides)
+    iterate_wings_inward(cube_size)
+    give_wings_side_colors(inner_wings, cube_sides)
 
     outer_x_center_buffer = letter_to_number("a")
     inner_x_center_buffer = letter_to_number("a")
@@ -290,8 +309,10 @@ if len(args) == 0:
     full_memo += add_spaces_to_memo(solve_pieces(inner_x_centers, inner_x_center_buffer)) + "\n"
     full_memo += add_spaces_to_memo(solve_pieces(clockwise_obliques, clockwise_oblique_buffer)) + "\n"
     full_memo += add_spaces_to_memo(solve_pieces(counterclockwise_obliques, counterclockwise_oblique_buffer)) + "\n"
+
     full_memo += add_spaces_to_memo(solve_pieces(outer_wings, outer_wings_buffer)) + "\n"
-    #full_memo += add_spaces_to_memo(solve_edge_pieces(inner_wings, inner_wings_buffer)) + "\n"
+
+    full_memo += add_spaces_to_memo(solve_pieces(inner_wings, inner_wings_buffer)) + "\n"
 
     print(full_memo)
 
