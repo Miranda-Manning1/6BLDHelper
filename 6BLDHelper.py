@@ -2,6 +2,8 @@ import sys
 from cubescrambler import scrambler666
 import magiccube
 
+piece_list_debugging = True
+
 def print_help():
     print("Welcome to the 6BLD Memo Maker!")
     print("-s [scramble] (default: makes its own scramble)")
@@ -99,35 +101,47 @@ def color_on_correct_side(color, index):
 
     return False
 
-def solve_pieces(piece_list, buffer):
+def get_piece_list_matrix(piece_list):
+    if len(piece_list) != 24:
+        raise ValueError("Input list must have exactly 24 elements.")
+    return [piece_list[i:i+4] for i in range(0, 24, 4)]
+
+
+# decide what side to swap the buffer location piece to depending on the color of the piece in the buffer position.
+# make sure that the buffer position is not in the list, because we never want to attempt to swap to the buffer.
+def get_pieces_to_attempt_swap_to(buffer, buffer_color):
+    match buffer_color:
+        case "W":
+            return [i for i in range(0, 4) if i != buffer]
+        case "O":
+            return [i for i in range(4, 8) if i != buffer]
+        case "G":
+            return [i for i in range(8, 12) if i != buffer]
+        case "R":
+            return [i for i in range(12, 16) if i != buffer]
+        case "B":
+            return [i for i in range(16, 20) if i != buffer]
+        case "Y":
+            return [i for i in range(20, 24) if i != buffer]
+
+def solve_center_pieces(piece_list, buffer):
     memo = ""
-    buffer_color = piece_list[buffer]
     memo_finished = False
+
+    piece_list_matrix = []
+    if piece_list_debugging: piece_list_matrix = get_piece_list_matrix(piece_list)
 
     while not memo_finished:
 
-        # decide what side to swap the buffer location piece to depending on the color of the piece in the buffer position.
-        # make sure that the buffer position is not in the list, because we never want to attempt to swap to the buffer.
-        pieces_to_attempt_swap_to = []
-        match buffer_color:
-            case "W":
-                pieces_to_attempt_swap_to = [i for i in range(0, 4) if i != buffer]
-            case "O":
-                pieces_to_attempt_swap_to = [i for i in range(4, 8) if i != buffer]
-            case "G":
-                pieces_to_attempt_swap_to = [i for i in range(8, 12) if i != buffer]
-            case "R":
-                pieces_to_attempt_swap_to = [i for i in range(12, 16) if i != buffer]
-            case "B":
-                pieces_to_attempt_swap_to = [i for i in range(16, 20) if i != buffer]
-            case "Y":
-                pieces_to_attempt_swap_to = [i for i in range(20, 24) if i != buffer]
+        pieces_to_attempt_swap_to = get_pieces_to_attempt_swap_to(buffer, piece_list[buffer])
 
         # check all 4 pieces on the side for an unsolved piece
         for potential_piece_to_swap_to in pieces_to_attempt_swap_to:
-            if not piece_list[potential_piece_to_swap_to] == buffer_color:
+            if not piece_list[potential_piece_to_swap_to] == piece_list[buffer]:
+
                 # swap the colors of the buffer and the swapping piece
-                piece_list[potential_piece_to_swap_to], buffer_color = buffer_color, piece_list[potential_piece_to_swap_to]
+                piece_list[potential_piece_to_swap_to], piece_list[buffer] = piece_list[buffer], piece_list[potential_piece_to_swap_to]
+
                 memo += number_to_letter(potential_piece_to_swap_to)
                 break
 
@@ -140,7 +154,8 @@ def solve_pieces(piece_list, buffer):
                 if not color_on_correct_side(potential_piece_color_to_swap_to, i):
 
                     # swap the colors of the buffer and the swapping piece
-                    piece_list[i], buffer_color = buffer_color, piece_list[i]
+                    piece_list[i], piece_list[buffer] = piece_list[buffer], piece_list[i]
+
                     memo += number_to_letter(i)
                     break
 
@@ -149,7 +164,6 @@ def solve_pieces(piece_list, buffer):
                 memo_finished = True
 
     return memo.upper()
-
 
 args = sys.argv[1:]
 
@@ -186,11 +200,20 @@ if len(args) == 0:
 
     outer_x_center_buffer = letter_to_number("a")
     inner_x_center_buffer = letter_to_number("a")
+    clockwise_oblique_buffer = letter_to_number("d")
+    counterclockwise_oblique_buffer = letter_to_number("d")
+    outer_wings_buffer = letter_to_number("u")
+    inner_wings_buffer = letter_to_number("u")
+    corner_buffer = letter_to_number("a")
 
     full_memo = ""
 
-    full_memo += add_spaces_to_memo(solve_pieces(outer_x_centers, outer_x_center_buffer)) + "\n"
-    full_memo += add_spaces_to_memo(solve_pieces(inner_x_centers, inner_x_center_buffer)) + "\n"
+    full_memo += add_spaces_to_memo(solve_center_pieces(outer_x_centers, outer_x_center_buffer)) + "\n"
+    full_memo += add_spaces_to_memo(solve_center_pieces(inner_x_centers, inner_x_center_buffer)) + "\n"
+    full_memo += add_spaces_to_memo(solve_center_pieces(clockwise_obliques, clockwise_oblique_buffer)) + "\n"
+    full_memo += add_spaces_to_memo(solve_center_pieces(counterclockwise_obliques, counterclockwise_oblique_buffer))
+    #full_memo += add_spaces_to_memo(solve_pieces(outer_wings, outer_wings_buffer, []))
+    #full_memo += add_spaces_to_memo(solve_pieces(inner_wings, inner_wings_buffer))
 
     print(full_memo)
 
